@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api';
 
-export default function Signup({ sessionId }) {
+export default function Signup({ sessionId, onAuthSuccess }) {
     const [formData, setFormData] = useState({ fullName: '', email: '', password: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -21,14 +21,15 @@ export default function Signup({ sessionId }) {
         setLoading(true);
         setError('');
         
-        try {
+         try {
             const res = await api.register(formData.email, formData.password, formData.fullName);
             if (res.error) {
                 setError(res.error);
                 api.track(sessionId, 'error', 'signup-error', { error: res.error });
             } else {
                 api.track(sessionId, 'click', 'signup-success');
-                navigate('/login');
+                if (onAuthSuccess) onAuthSuccess(); // Refresh session ID
+                navigate('/'); // Land on home page
             }
         } catch (err) {
             console.error('Signup error:', err);

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api';
 
-export default function Login({ sessionId }) {
+export default function Login({ sessionId, onAuthSuccess }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -25,7 +25,8 @@ export default function Login({ sessionId }) {
                 api.track(sessionId, 'error', 'login-error', { error: res.error });
             } else {
                 api.track(sessionId, 'click', 'login-success');
-                navigate('/home');
+                if (onAuthSuccess) onAuthSuccess(); // Refresh session ID
+                navigate('/');
             }
         } catch (err) {
             console.error('Login error:', err);

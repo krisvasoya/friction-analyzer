@@ -129,5 +129,13 @@ export const api = {
     getLiveFeed: async () => {
         const res = await fetch(`${API_BASE}/dashboard/live-feed`);
         return res.json();
+    },
+    getSessionsList: async () => {
+        const res = await fetch(`${API_BASE}/dashboard/sessions-list`);
+        return res.json();
+    },
+    getSessionEvents: async (sessionId) => {
+        const res = await fetch(`${API_BASE}/dashboard/sessions/${sessionId}/events`);
+        return res.json();
     }
 };

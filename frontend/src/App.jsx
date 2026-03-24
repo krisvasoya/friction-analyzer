@@ -21,20 +21,36 @@ import { api } from './api';
 function App() {
     const [sessionId, setSessionId] = useState(null);
 
+    const startNewSession = React.useCallback(async () => {
+        try {
+            const data = await api.startSession();
+            setSessionId(data.sessionId);
+        } catch (e) {
+            console.error('Failed to start session', e);
+        }
+    }, []);
+
     useEffect(() => {
-        const startNewSession = async () => {
+        let ignore = false;
+        
+        async function init() {
             try {
-                // Force new session on every reload for demo purposes
                 const data = await api.startSession();
-                setSessionId(data.sessionId);
-                // localStorage.setItem('sessionId', data.sessionId); // Disabled for demo
+                if (!ignore) {
+                    setSessionId(data.sessionId);
+                }
             } catch (e) {
                 console.error('Failed to start session', e);
             }
-        };
+        }
 
-        startNewSession();
+        init();
+        return () => { ignore = true; };
     }, []);
+
+    const refreshSession = () => {
+        startNewSession();
+    };
 
     if (!sessionId) return <div>Loading Session...</div>;
 
@@ -45,8 +61,8 @@ function App() {
                 <Route path="/" element={<Layout sessionId={sessionId}><Home /></Layout>} />
                 <Route path="/services" element={<Layout sessionId={sessionId}><Services /></Layout>} />
                 <Route path="/details" element={<Layout sessionId={sessionId}><Details /></Layout>} />
-                <Route path="/login" element={<Layout sessionId={sessionId}><Login sessionId={sessionId} /></Layout>} />
-                <Route path="/signup" element={<Layout sessionId={sessionId}><Signup sessionId={sessionId} /></Layout>} />
+                <Route path="/login" element={<Layout sessionId={sessionId}><Login sessionId={sessionId} onAuthSuccess={refreshSession} /></Layout>} />
+                <Route path="/signup" element={<Layout sessionId={sessionId}><Signup sessionId={sessionId} onAuthSuccess={refreshSession} /></Layout>} />
                 <Route path="/form" element={<Layout sessionId={sessionId}><MultiStepForm sessionId={sessionId} /></Layout>} />
                 <Route path="/confirmation" element={<Layout sessionId={sessionId}><Confirmation sessionId={sessionId} /></Layout>} />
                 <Route path="/pricing" element={<Layout sessionId={sessionId}><Pricing /></Layout>} />

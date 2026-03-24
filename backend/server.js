@@ -597,6 +597,24 @@ app.get('/api/dashboard/academic-stats', (req, res) => {
     });
 });
 
+// API: Sessions List (For viewer)
+app.get('/api/dashboard/sessions-list', (req, res) => {
+    db.all(`SELECT id, start_time, status, browser, device_type, country, total_friction_score 
+            FROM sessions ORDER BY start_time DESC LIMIT 100`, (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows);
+    });
+});
+
+// API: Session Events (Chronological Journey)
+app.get('/api/dashboard/sessions/:sessionId/events', (req, res) => {
+    const { sessionId } = req.params;
+    db.all(`SELECT * FROM interaction_logs WHERE session_id = ? ORDER BY timestamp ASC`, [sessionId], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows);
+    });
+});
+
 // API: Advanced Analytics Stats
 app.get('/api/dashboard/advanced-stats', (req, res) => {
     const stats = {};

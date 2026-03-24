@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
-import { Sun, Moon, LogOut, Shield, LayoutDashboard, BarChart3, Brain, Globe, Search, Target, TrendingUp, Radio, ArrowLeft } from 'lucide-react';
+import { Sun, Moon, LogOut, Shield, LayoutDashboard, BarChart3, Brain, Globe, Search, Target, TrendingUp, Radio, ArrowLeft, Activity } from 'lucide-react';
 import SummaryCards from './SummaryCards';
 import RealTimeMetrics from './RealTimeMetrics';
 import HeatmapOverlay from './HeatmapOverlay';
@@ -19,10 +19,12 @@ import AccessibilityAuditor from './AccessibilityAuditor';
 import AcademicDashboard from './AcademicDashboard';
 import AdvancedMetricsDashboard from './AdvancedMetricsDashboard';
 import LiveInteractionFeed from './LiveInteractionFeed';
+import SessionViewer from './SessionViewer';
 
 const TAB_ICONS = {
     Summary: BarChart3, Insights: Brain, Distribution: Globe,
-    Audits: Search, Behavioral: Target, Analytics: TrendingUp, 'Live Feed': Radio
+    Audits: Search, Behavioral: Target, Analytics: TrendingUp, 'Live Feed': Radio,
+    Sessions: Search
 };
 
 export default function Dashboard() {
@@ -140,7 +142,7 @@ export default function Dashboard() {
                     border: '1px solid var(--border)',
                     overflowX: 'auto'
                 }}>
-                    {['Summary', 'Insights', 'Distribution', 'Audits', 'Behavioral', 'Analytics', 'Live Feed'].map(tab => (
+                    {['Summary', 'Insights', 'Distribution', 'Audits', 'Sessions', 'Behavioral', 'Analytics', 'Live Feed'].map(tab => (
                         <button
                             key={tab}
                             onClick={() => switchTab(tab)}
@@ -214,6 +216,7 @@ export default function Dashboard() {
                     {activeTab === 'Behavioral' && <AcademicDashboard />}
                     {activeTab === 'Analytics' && <AdvancedMetricsDashboard />}
                     {activeTab === 'Live Feed' && <LiveInteractionFeed />}
+                    {activeTab === 'Sessions' && <SessionViewer />}
                 </div>
 
                 {/* ═══ FOOTER ═══ */}
