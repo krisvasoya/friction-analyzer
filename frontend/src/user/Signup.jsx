@@ -58,18 +58,15 @@ export default function Signup({ sessionId, onAuthSuccess }) {
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'center',
-            background: 'radial-gradient(circle at center, #0f172a 0%, #020617 100%)',
+            background: 'var(--bg-dark)',
             padding: '2rem'
         }}>
-            <div className="card" style={{ 
+            <div className="card card-hover animate-fade-in" style={{ 
                 maxWidth: '480px',
                 width: '100%',
                 padding: '3rem', 
-                background: 'rgba(30, 41, 59, 0.4)', 
-                backdropFilter: 'blur(16px)',
-                border: '1px solid rgba(255, 255, 255, 0.08)', 
+                border: '1px solid var(--border)', 
                 borderRadius: '32px',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
             }}>
                 <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
                     <div style={{ 
@@ -78,19 +75,19 @@ export default function Signup({ sessionId, onAuthSuccess }) {
                         justifyContent: 'center', 
                         width: '64px', 
                         height: '64px', 
-                        background: 'linear-gradient(135deg, #00f2ea, #7928ca)', 
+                        background: 'linear-gradient(135deg, var(--primary), var(--accent))', 
                         borderRadius: '18px',
                         marginBottom: '1.5rem',
                         fontSize: '2rem',
-                        boxShadow: '0 10px 20px rgba(0, 242, 234, 0.2)'
+                        boxShadow: '0 10px 20px var(--primary-glow)'
                     }}>⚡</div>
                     <h1 style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '0.75rem', letterSpacing: '-0.04em' }}>Create Account</h1>
-                    <p style={{ color: '#94a3b8', fontSize: '1.05rem' }}>Join the next generation of UX optimization.</p>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem' }}>Join the next generation of UX optimization.</p>
                 </div>
                 
                 <form onSubmit={handleSignup}>
-                    <div className="input-group" style={{ marginBottom: '1.25rem' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '600', color: '#cbd5e1' }}>Full Name</label>
+                    <div className="input-group">
+                        <label>Full Name</label>
                         <input 
                             name="fullName" 
                             type="text" 
@@ -98,20 +95,10 @@ export default function Signup({ sessionId, onAuthSuccess }) {
                             value={formData.fullName} 
                             onChange={handleChange} 
                             placeholder="John Doe" 
-                            style={{ 
-                                width: '100%',
-                                padding: '0.875rem 1.25rem',
-                                background: 'rgba(15, 23, 42, 0.5)',
-                                border: '1px solid rgba(255, 255, 255, 0.1)',
-                                borderRadius: '14px',
-                                color: '#fff',
-                                fontSize: '1rem',
-                                transition: 'all 0.3s'
-                            }}
                         />
                     </div>
-                    <div className="input-group" style={{ marginBottom: '1.25rem' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '600', color: '#cbd5e1' }}>Email Address</label>
+                    <div className="input-group">
+                        <label>Email Address</label>
                         <input 
                             name="email" 
                             type="email" 
@@ -119,19 +106,10 @@ export default function Signup({ sessionId, onAuthSuccess }) {
                             value={formData.email} 
                             onChange={handleChange} 
                             placeholder="john@example.com" 
-                            style={{ 
-                                width: '100%',
-                                padding: '0.875rem 1.25rem',
-                                background: 'rgba(15, 23, 42, 0.5)',
-                                border: '1px solid rgba(255, 255, 255, 0.1)',
-                                borderRadius: '14px',
-                                color: '#fff',
-                                fontSize: '1rem'
-                            }}
                         />
                     </div>
-                    <div className="input-group" style={{ marginBottom: '1.5rem' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '600', color: '#cbd5e1' }}>Password</label>
+                    <div className="input-group">
+                        <label>Password</label>
                         <input 
                             name="password" 
                             type="password" 
@@ -139,31 +117,11 @@ export default function Signup({ sessionId, onAuthSuccess }) {
                             value={formData.password} 
                             onChange={handleChange} 
                             placeholder="••••••••" 
-                            style={{ 
-                                width: '100%',
-                                padding: '0.875rem 1.25rem',
-                                background: 'rgba(15, 23, 42, 0.5)',
-                                border: '1px solid rgba(255, 255, 255, 0.1)',
-                                borderRadius: '14px',
-                                color: '#fff',
-                                fontSize: '1rem'
-                            }}
                         />
                     </div>
 
                     {error && (
-                        <div style={{ 
-                            background: 'rgba(239, 68, 68, 0.1)', 
-                            border: '1px solid rgba(239, 68, 68, 0.2)', 
-                            color: '#fca5a5', 
-                            padding: '0.75rem 1rem', 
-                            borderRadius: '12px', 
-                            marginBottom: '1.5rem',
-                            fontSize: '0.9rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem'
-                        }}>
+                        <div className="error animate-fade-in">
                             <span>⚠️</span> {error}
                         </div>
                     )}
@@ -172,17 +130,8 @@ export default function Signup({ sessionId, onAuthSuccess }) {
                         type="submit" 
                         disabled={loading} 
                         style={{ 
-                            width: '100%', 
-                            padding: '1rem',
-                            borderRadius: '16px',
-                            border: 'none',
-                            background: 'linear-gradient(90deg, #00f2ea, #7928ca)',
-                            color: '#fff',
-                            fontWeight: '700',
-                            fontSize: '1.1rem',
-                            cursor: 'pointer',
-                            boxShadow: '0 10px 20px rgba(0, 242, 234, 0.2)',
-                            transition: 'all 0.3s'
+                            marginTop: '1rem',
+                            boxShadow: '0 10px 20px var(--primary-glow)',
                         }}
                     >
                         {loading ? 'Creating Account...' : 'Sign Up'}
@@ -190,9 +139,9 @@ export default function Signup({ sessionId, onAuthSuccess }) {
                 </form>
 
                 <div style={{ display: 'flex', alignItems: 'center', margin: '2rem 0', gap: '1rem' }}>
-                    <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }}></div>
-                    <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase' }}>Continue with</span>
-                    <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }}></div>
+                    <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}></div>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.7rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Continue with</span>
+                    <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}></div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '1rem' }}>
@@ -200,8 +149,8 @@ export default function Signup({ sessionId, onAuthSuccess }) {
                     <SocialButton icon="🐙" onClick={() => handleSocialSignup('github')} label="GitHub" />
                 </div>
 
-                <p style={{ textAlign: 'center', marginTop: '2.5rem', color: '#94a3b8', fontSize: '0.95rem' }}>
-                    Already have an account? <Link to="/login" style={{ color: '#00f2ea', fontWeight: '700', textDecoration: 'none' }}>Log In</Link>
+                <p style={{ textAlign: 'center', marginTop: '2.5rem', color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+                    Already have an account? <Link to="/login" style={{ color: 'var(--primary)', fontWeight: '700', textDecoration: 'none' }}>Log In</Link>
                 </p>
             </div>
         </div>
@@ -211,21 +160,10 @@ export default function Signup({ sessionId, onAuthSuccess }) {
 function SocialButton({ icon, onClick, label }) {
     return (
         <button 
+            type="button"
             onClick={onClick}
-            style={{ 
-                flex: 1, 
-                padding: '0.75rem', 
-                background: 'rgba(255,255,255,0.05)', 
-                border: '1px solid var(--border)', 
-                borderRadius: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.5rem',
-                fontSize: '0.9rem',
-                cursor: 'pointer',
-                color: 'var(--text-primary)'
-            }}
+            className="secondary"
+            style={{ padding: '0.75rem' }}
             title={label}
         >
             <span style={{ fontSize: '1.2rem' }}>{icon}</span>

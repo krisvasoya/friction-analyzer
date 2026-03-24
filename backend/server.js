@@ -14,6 +14,11 @@ app.get('/', (req, res) => {
     res.send('Digital Friction Analyzer API is running. Access frontend at http://localhost:5173');
 });
 
+// --- AUTH HELPERS ---
+const hashPassword = (password) => {
+    return crypto.createHash('sha256').update(password).digest('hex');
+};
+
 // --- AUTH ROUTES ---
 
 // API: Register
@@ -23,22 +28,23 @@ app.post('/api/auth/register', (req, res) => {
     const createdAt = Date.now();
 
     if (!email || !password || !fullName) {
-        console.error('Missing required fields for registration');
-        return res.status(400).json({ error: 'All fields are required' });
+        return res.status(400).json({ error: 'Please provide email, password, and full name.' });
     }
 
+    const hashedPassword = hashPassword(password);
+
     db.run(`INSERT INTO users (email, password, full_name, provider, created_at) VALUES (?, ?, ?, ?, ?)`,
-        [email, password, fullName, provider, createdAt],
+        [email, hashedPassword, fullName, provider, createdAt],
         function(err) {
             if (err) {
                 console.error('DB Insert Error (Register):', err.message);
                 if (err.message.includes('UNIQUE constraint failed')) {
-                    return res.status(400).json({ error: 'Email already exists' });
+                    return res.status(400).json({ error: 'This email is already registered.' });
                 }
-                return res.status(500).json({ error: 'Failed to register' });
+                return res.status(500).json({ error: 'Server error during registration. Please try again later.' });
             }
             console.log('User registered successfully, ID:', this.lastID);
-            res.json({ message: 'User registered', userId: this.lastID });
+            res.json({ message: 'User registered successfully', userId: this.lastID });
         }
     );
 });
@@ -48,14 +54,20 @@ app.post('/api/auth/login', (req, res) => {
     console.log('Login request body:', req.body);
     const { email, password } = req.body;
 
+    if (!email || !password) {
+        return res.status(400).json({ error: 'Email and password are required.' });
+    }
+
+    const hashedPassword = hashPassword(password);
+
     db.get(`SELECT * FROM users WHERE email = ?`, [email], (err, user) => {
         if (err) {
             console.error('DB Select Error (Login):', err.message);
-            return res.status(500).json({ error: 'Login failed' });
+            return res.status(500).json({ error: 'Internal server error during login.' });
         }
-        if (!user || user.password !== password) {
+        if (!user || user.password !== hashedPassword) {
             console.warn('Invalid login attempt for email:', email);
-            return res.status(401).json({ error: 'Invalid email or password' });
+            return res.status(401).json({ error: 'Invalid email or password.' });
         }
         console.log('Login successful for user:', user.email);
         res.json({ 

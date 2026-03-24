@@ -61,71 +61,73 @@ export default function Dashboard() {
 
 
     return (
-        <div style={{ minHeight: '100vh', background: 'var(--bg-dark)', padding: '1.5rem 1rem', transition: 'background 0.4s ease' }}>
+        <div style={{ minHeight: '100vh', background: 'var(--bg-dark)', padding: '1.5rem 1rem', transition: 'var(--transition-smooth)' }}>
             <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
 
                 {/* ═══ HEADER ═══ */}
-                <header style={{
+                <header className="animate-fade-in" style={{
                     marginBottom: '2rem',
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                     flexWrap: 'wrap', gap: '1rem',
-                    padding: '1rem 1.5rem',
-                    borderRadius: '20px',
+                    padding: '1.25rem 2rem',
+                    borderRadius: '24px',
                     background: 'var(--bg-card)',
                     border: '1px solid var(--border)',
-                    backdropFilter: 'blur(20px)'
+                    backdropFilter: 'blur(24px)',
+                    boxShadow: '0 10px 40px rgba(0,0,0,0.2)'
                 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
                         <div style={{
-                            width: '48px', height: '48px', borderRadius: '14px',
-                            background: 'linear-gradient(135deg, #00f2ea, #0891b2)',
+                            width: '52px', height: '52px', borderRadius: '16px',
+                            background: 'linear-gradient(135deg, var(--primary), #0891b2)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            boxShadow: '0 8px 24px rgba(0,242,234,0.2)'
+                            boxShadow: '0 8px 24px var(--primary-glow)'
                         }}>
-                            <LayoutDashboard size={22} color="#fff" />
+                            <LayoutDashboard size={24} color="#000" />
                         </div>
                         <div>
-                            <h1 style={{ fontSize: '1.5rem', fontWeight: '800', margin: 0, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+                            <h1 style={{ fontSize: '1.6rem', fontWeight: '800', margin: 0, color: 'var(--text-primary)', letterSpacing: '-0.03em' }}>
                                 Friction <span style={{ color: 'var(--primary)' }}>Analyzer</span>
                             </h1>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
-                                <Shield size={10} />
-                                <span>Enterprise Dashboard</span>
-                                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', animation: 'pulse 2s infinite' }} />
-                                <span style={{ color: '#10b981' }}>Live</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: '600' }}>
+                                <Shield size={12} />
+                                <span style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>Enterprise Suite</span>
+                                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--success)', animation: 'pulse 2s infinite' }} />
+                                <span style={{ color: 'var(--success)' }}>Live</span>
                             </div>
                         </div>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                         <button
                             onClick={toggleTheme}
+                            className="secondary"
                             title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
                             style={{
-                                width: '40px', height: '40px', borderRadius: '12px',
-                                border: '1px solid var(--border)', background: 'var(--bg-dark)',
-                                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                                color: 'var(--text-primary)', boxShadow: 'none', padding: 0
+                                width: '42px', height: '42px', borderRadius: '12px',
+                                transition: 'var(--transition-smooth)',
+                                padding: 0
                             }}
                         >
-                            <div style={{ transition: 'transform 0.4s', transform: theme === 'dark' ? 'rotate(0)' : 'rotate(180deg)' }}>
-                                {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+                            <div style={{ transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)', transform: theme === 'dark' ? 'rotate(0)' : 'rotate(180deg)' }}>
+                                {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
                             </div>
                         </button>
 
                         <button
                             onClick={handleLogout}
+                            className="secondary"
                             title="Logout"
                             style={{
-                                width: '40px', height: '40px', borderRadius: '12px',
-                                border: '1px solid rgba(248, 81, 73, 0.3)',
-                                background: 'rgba(248, 81, 73, 0.06)',
-                                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                transition: 'all 0.3s', color: '#f85149', boxShadow: 'none', padding: 0
+                                width: '42px', height: '42px', borderRadius: '12px',
+                                border: '1px solid rgba(244, 63, 94, 0.2)',
+                                background: 'rgba(244, 63, 94, 0.05)',
+                                color: 'var(--danger)',
+                                transition: 'var(--transition-smooth)',
+                                padding: 0
                             }}
                         >
-                            <LogOut size={16} />
+                            <LogOut size={18} />
                         </button>
                     </div>
                 </header>

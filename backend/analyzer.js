@@ -55,10 +55,8 @@ function performAnalysis(session, logs) {
     // Sort logs by time just in case
     logs.sort((a, b) => a.timestamp - b.timestamp);
 
-    // Identify Navigation Flow & Loops
-    const navPath = logs.filter(l => l.event_type === 'page_view').map(l => l.target_element || l.metadata.url || l.page_url); // target_element stores 'body' usually, metadata has url
-    // Better source: page_url from log usually correct. Or check metadata.
-    // Let's rely on page_url attribute I added or existing structure.
+    // Identify Navigation Flow using page_url
+    const navPath = logs.filter(l => l.event_type === 'page_view').map(l => l.page_url);
     
     // Detect Loops: A -> B -> A
     for (let i = 0; i < navPath.length - 2; i++) {
@@ -67,14 +65,12 @@ function performAnalysis(session, logs) {
             issues.push({
                 screen: navPath[i],
                 severity: 'Medium',
+                timestamp: Date.now(), // Added timestamp
                 description: `Navigation loop detected: ${navPath[i]} -> ${navPath[i+1]} -> ${navPath[i]}`
             });
         }
     }
 
-    // Process Events
-    // Process Events
-    let prevFriction = 0;
     let entryPageProcessed = false;
 
     logs.forEach((log, index) => {
@@ -86,10 +82,6 @@ function performAnalysis(session, logs) {
             dead_clicks: 0, 
             rage_clicks: 0 
         };
-
-        // Current Friction Calculation for Critical Moments
-        let currentFriction = (100 - clickScore) + (100 - timeScore) + (100 - navScore); 
-        // Note: Simple proxy diff
 
         // TIER-2: Page Entry Expectation (First action on entry page)
         if (!entryPageProcessed && log.event_type !== 'page_view') {
@@ -120,6 +112,7 @@ function performAnalysis(session, logs) {
                     issues.push({
                          screen: page,
                          severity: 'Low',
+                         timestamp: log.timestamp,
                          description: `Redundant interaction detected on ${log.target_element}`
                     });
                 }
@@ -132,6 +125,7 @@ function performAnalysis(session, logs) {
             issues.push({
                 screen: page,
                 severity: 'Low',
+                timestamp: log.timestamp,
                 description: 'Dead click detected (non-interactive element)'
             });
         } else if (log.event_type === 'rage_click') {
@@ -141,6 +135,7 @@ function performAnalysis(session, logs) {
              issues.push({
                 screen: page,
                 severity: 'High',
+                timestamp: log.timestamp,
                 description: `Rage click detected on ${log.target_element}`
             });
         } else if (log.event_type === 'time_to_first_click') {
@@ -152,6 +147,7 @@ function performAnalysis(session, logs) {
                 issues.push({
                     screen: page,
                     severity: 'Low',
+                    timestamp: log.timestamp,
                     description: 'High time-to-first-click (Hesitation)'
                 });
             }
@@ -160,21 +156,6 @@ function performAnalysis(session, logs) {
             if (data.depth > pageMetrics[page].max_scroll) {
                 pageMetrics[page].max_scroll = data.depth;
             }
-        }
-
-        // TIER-1: Critical Moment Detection
-        // Recalculate friction proxy after this event
-        let newFriction = ((100 - clickScore) + (100 - timeScore) + (100 - navScore)) / 3 * 100; // rough normalized
-        // Actually, let's track drop in scores.
-        // Simplified: if scores dropped significantly in this step
-        // We need a better real-time accumulation for "Critical Moment" but simpler here:
-        // Identify events that triggered issues = critical.
-        if (issues.length > 0 && issues[issues.length-1].timestamp === log.timestamp) { // if issue added
-             // Mark as critical if severity High
-             if (issues[issues.length-1].severity === 'High') {
-                 criticalMoments++;
-                 issues[issues.length-1].description += ' [CRITICAL MOMENT]';
-             }
         }
     });
 
@@ -185,6 +166,7 @@ function performAnalysis(session, logs) {
             issues.push({
                 screen: page,
                 severity: 'Medium',
+                timestamp: Date.now(),
                 description: 'High scroll depth with low interaction (Content Clarity?)'
             });
             navScore -= 5;
@@ -208,22 +190,18 @@ function performAnalysis(session, logs) {
         }
     });
 
-    // Cap metrics
-    clickScore = Math.max(0, clickScore);
-    timeScore = Math.max(0, timeScore);
-    navScore = Math.max(0, navScore);
-    
-    // --- 4. Resolved vs Unresolved Friction ---
+    // Average Friction Score
+    let totalScore = (clickScore + timeScore + navScore) / 3;
+
+    // --- 4. Unresolved Friction ---
     if (session.status === 'abandoned' && totalScore < 50) {
         // High friction + Abandoned = Unresolved
         issues.push({
              screen: 'Session',
              severity: 'High',
+             timestamp: Date.now(),
              description: 'Unresolved Friction: User abandoned due to high friction.'
         });
-    } else if (totalScore < 50 && session.status === 'completed') {
-        // High Friction + Completed = Resolved (Resilience)
-        qualityScore += 10; // Bonus for perseverance
     }
 
     // --- 5. Attention Drift Calculation ---
@@ -231,24 +209,24 @@ function performAnalysis(session, logs) {
     const attentionDrift = navPath.length > 2 ? (new Set(navPath).size / navPath.length) : 1; 
     let attentionDriftScore = 100 * attentionDrift; 
     // If they visit many pages but unique count is low -> looping -> drift score drops? 
-    // Actually: High entropy (random logic) = Drift.
-    // Let's invert: High Ratio = Exploring new things (Good/Bad?).
+    // Actually: High Ratio = Exploring new things (Good/Bad?).
     // Attention Drift: bouncing between unrelated areas.
     // If (transitions > 5 && unique < transitions * 0.5) -> drifting back and forth?
     
-    // --- 7. Interaction Density Normalization ---
+    // --- 6. Interaction Density ---
     const totalClicks = logs.filter(l => l.event_type === 'click').length;
     const interactionDensityScore = totalClicks > 0 ? (uniqueTargets.size / totalClicks) : 1;
     if (interactionDensityScore < 0.3) {
          issues.push({
              screen: 'Global',
              severity: 'Medium',
+             timestamp: Date.now(),
              description: 'Low Interaction Density: High click count on few elements (Flailing?).'
         });
         qualityScore -= 5;
     }
 
-    // --- 9. Friction Confidence Level ---
+    // --- 7. Friction Confidence Level ---
     // Rule: events > 5 and duration > 10s = High confidence
     if (logs.length > 5 && (session.end_time - session.start_time > 10000)) {
         frictionConfidence = 0.9;
@@ -262,9 +240,6 @@ function performAnalysis(session, logs) {
     navScore = Math.max(0, navScore);
     qualityScore = Math.max(0, Math.min(100, qualityScore));
     
-    // Average Friction Score
-    let totalScore = (clickScore + timeScore + navScore) / 3;
-
     return { 
         totalScore, clickScore, timeScore, navScore, issues, pageMetrics,
         qualityScore, attentionDriftScore, interactionDensityScore, 
@@ -272,53 +247,53 @@ function performAnalysis(session, logs) {
     };
 }
 
+function clearAnalysisForSession(sessionId, callback) {
+    db.serialize(() => {
+        db.run('DELETE FROM issues WHERE session_id = ?', [sessionId]);
+        db.run('DELETE FROM friction_scores WHERE session_id = ?', [sessionId]);
+        db.run('DELETE FROM page_metrics WHERE session_id = ?', [sessionId], callback);
+    });
+}
+
 function saveAnalysisResults(sessionId, result) {
-    const { 
-        totalScore, clickScore, timeScore, navScore, issues, pageMetrics,
-        qualityScore, attentionDriftScore, interactionDensityScore, 
-        entryExpectationScore, frictionConfidence
-    } = result;
+    clearAnalysisForSession(sessionId, () => {
+        const { 
+            totalScore, clickScore, timeScore, navScore, issues, pageMetrics,
+            qualityScore, attentionDriftScore, interactionDensityScore, 
+            entryExpectationScore, frictionConfidence
+        } = result;
 
-    // Update Session
-    db.run(`UPDATE sessions SET 
-        total_friction_score = ?, 
-        status = 'completed',
-        quality_score = ?,
-        attention_drift_score = ?,
-        interaction_density_score = ?,
-        entry_expectation_score = ?,
-        friction_confidence_score = ?
-        WHERE id = ?`, 
-        [totalScore, qualityScore, attentionDriftScore, interactionDensityScore, entryExpectationScore, frictionConfidence, sessionId], (err) => {
-            if (err) console.error("Error updating session", err);
+        // Update Session
+        db.run(`UPDATE sessions SET 
+            total_friction_score = ?, 
+            status = 'completed',
+            quality_score = ?,
+            attention_drift_score = ?,
+            interaction_density_score = ?,
+            entry_expectation_score = ?,
+            friction_confidence_score = ?
+            WHERE id = ?`, 
+            [totalScore, qualityScore, attentionDriftScore, interactionDensityScore, entryExpectationScore, frictionConfidence, sessionId]);
+
+        const lastScreen = Object.keys(pageMetrics).pop() || 'Global';
+        
+        db.run(`INSERT INTO friction_scores (session_id, screen_name, score, click_score, time_score, nav_score) VALUES (?, ?, ?, ?, ?, ?)`,
+            [sessionId, lastScreen, totalScore, clickScore, timeScore, navScore]);
+
+        // Save Page Metrics
+        Object.entries(pageMetrics).forEach(([page, m]) => {
+            db.run(`INSERT INTO page_metrics (session_id, page_url, time_to_first_click, max_scroll_depth, click_count, is_abandoned, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                [sessionId, page, m.time_to_first_click, m.max_scroll, m.clicks, m.is_abandoned, Date.now()]);
         });
 
-    // Save Screen Scores (Simplified: we save breakdown per session, but we can also save per screen if we calculated provided score per screen. 
-    // The schema allows screen_name. Let's save a Global entry for now or break it down if we had per-screen logic.
-    // For now, I'll save the breakdown in the friction_scores table under 'Global' or the last screen.
-    // Actually, I modified the table to have click_score etc.
-    const lastScreen = Object.keys(pageMetrics).pop() || 'Global';
-    
-    db.run(`INSERT INTO friction_scores (session_id, screen_name, score, click_score, time_score, nav_score) VALUES (?, ?, ?, ?, ?, ?)`,
-        [sessionId, lastScreen, totalScore, clickScore, timeScore, navScore], (err) => {
-             if (err) console.error("Error inserting scores", err);
+        // Save Issues
+        issues.forEach(issue => {
+            db.run(`INSERT INTO issues (session_id, screen_name, severity, description, timestamp) VALUES (?, ?, ?, ?, ?)`,
+                [sessionId, issue.screen, issue.severity, issue.description, issue.timestamp || Date.now()]);
         });
 
-    // Save Page Metrics
-    Object.entries(pageMetrics).forEach(([page, m]) => {
-        db.run(`INSERT INTO page_metrics (session_id, page_url, time_to_first_click, max_scroll_depth, click_count, is_abandoned, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [sessionId, page, m.time_to_first_click, m.max_scroll, m.clicks, m.is_abandoned, Date.now()], (err) => {
-                if (err) console.error("Error inserting page metrics", err);
-            });
+        console.log(`Analysis complete for ${sessionId}. Score: ${totalScore.toFixed(2)}`);
     });
-
-    // Save Issues
-    issues.forEach(issue => {
-        db.run(`INSERT INTO issues (session_id, screen_name, severity, description, timestamp) VALUES (?, ?, ?, ?, ?)`,
-            [sessionId, issue.screen, issue.severity, issue.description, Date.now()]);
-    });
-
-    console.log(`Analysis complete for ${sessionId}. Score: ${totalScore.toFixed(2)}`);
 }
 
 module.exports = { analyzeSession };
