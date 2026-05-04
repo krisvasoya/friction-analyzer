@@ -28,7 +28,15 @@ const ExtendedMetrics = () => {
                 setLoading(false);
             }
         };
+
         fetchData();
+
+        // Listen for real-time updates
+        const unsubscribe = api.onStatsUpdate(() => {
+            fetchData();
+        });
+
+        return () => unsubscribe();
     }, []);
 
     if (loading) return (

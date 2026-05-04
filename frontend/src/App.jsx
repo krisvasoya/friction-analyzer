@@ -24,23 +24,38 @@ function App() {
     const startNewSession = React.useCallback(async () => {
         try {
             const data = await api.startSession();
-            setSessionId(data.sessionId);
+            if (data && data.sessionId) {
+                setSessionId(data.sessionId);
+            } else {
+                throw new Error('No sessionId returned');
+            }
         } catch (e) {
             console.error('Failed to start session', e);
+            // Fallback: generate a local UUID so the app still loads
+            setSessionId('local-' + crypto.randomUUID());
         }
     }, []);
 
     useEffect(() => {
         let ignore = false;
-        
+
         async function init() {
             try {
                 const data = await api.startSession();
                 if (!ignore) {
-                    setSessionId(data.sessionId);
+                    if (data && data.sessionId) {
+                        setSessionId(data.sessionId);
+                    } else {
+                        throw new Error('No sessionId returned');
+                    }
                 }
             } catch (e) {
                 console.error('Failed to start session', e);
+                if (!ignore) {
+                    // Fallback: generate a local UUID so the app still loads
+                    setSessionId('local-' + crypto.randomUUID());
+                    setSessionError(true);
+                }
             }
         }
 
@@ -52,7 +67,15 @@ function App() {
         startNewSession();
     };
 
-    if (!sessionId) return <div>Loading Session...</div>;
+    if (!sessionId) return (
+        <div style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            justifyContent: 'center', height: '100vh', background: '#0d1117', color: '#8b949e',
+            fontFamily: 'Inter, sans-serif', gap: '12px'
+        }}>
+            <div style={{ fontSize: '14px' }}>Loading Session...</div>
+        </div>
+    );
 
     return (
         <Router>

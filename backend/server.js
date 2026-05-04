@@ -6,6 +6,13 @@ const db = require('./database');
 const { analyzeSession } = require('./analyzer');
 
 const app = express();
+const http = require('http').createServer(app);
+const io = require('socket.io')(http, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    }
+});
 const PORT = 3000;
 
 app.use(cors());
@@ -146,6 +153,9 @@ app.post('/api/session/end', (req, res) => {
             // Trigger Analysis
             analyzeSession(sessionId); 
             
+            // Emit real-time update event
+            io.emit('stats_updated', { sessionId, type: 'session_end' });
+            
             res.json({ message: 'Session ended', endTime });
         }
     );
@@ -167,6 +177,10 @@ app.post('/api/track', (req, res) => {
             // Post-tracking analysis for Academic Metrics
             handleAcademicEvents(sessionId, eventType, metadata, page);
             
+            // Emit real-time event
+            io.emit('new_interaction', { sessionId, eventType, targetElement, metadata, page, timestamp });
+            io.emit('stats_updated', { type: 'interaction', eventType });
+
             res.json({ status: 'success' });
         }
     );
@@ -725,6 +739,6 @@ app.get('/api/dashboard/live-feed', (req, res) => {
     });
 });
 
-app.listen(PORT, () => {
+http.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });

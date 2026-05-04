@@ -1,4 +1,9 @@
+import { io } from 'socket.io-client';
+
 const API_BASE = 'http://localhost:3000/api';
+const SOCKET_URL = 'http://localhost:3000';
+
+const socket = io(SOCKET_URL);
 
 export const api = {
     startSession: async (metadata = {}) => {
@@ -137,5 +142,14 @@ export const api = {
     getSessionEvents: async (sessionId) => {
         const res = await fetch(`${API_BASE}/dashboard/sessions/${sessionId}/events`);
         return res.json();
+    },
+    // --- Real-time Socket Helpers ---
+    onStatsUpdate: (callback) => {
+        socket.on('stats_updated', callback);
+        return () => socket.off('stats_updated', callback);
+    },
+    onNewInteraction: (callback) => {
+        socket.on('new_interaction', callback);
+        return () => socket.off('new_interaction', callback);
     }
 };

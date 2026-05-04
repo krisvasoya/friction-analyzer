@@ -40,8 +40,13 @@ export default function LiveInteractionFeed() {
         };
 
         fetchFeed();
-        const interval = setInterval(fetchFeed, 2000);
-        return () => clearInterval(interval);
+
+        // Listen for new interactions in real-time
+        const unsubscribe = api.onNewInteraction((newEvent) => {
+            setEvents(prev => [newEvent, ...prev].slice(0, 50));
+        });
+
+        return () => unsubscribe();
     }, []);
 
     const filteredEvents = filter === 'all' 

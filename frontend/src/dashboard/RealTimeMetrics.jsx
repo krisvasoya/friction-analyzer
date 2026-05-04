@@ -52,9 +52,14 @@ export default function RealTimeMetrics() {
         };
 
         fetchStats();
-        const interval = setInterval(fetchStats, 2000);
-        return () => clearInterval(interval);
-    }, []);
+        
+        // Use real-time updates
+        const unsubscribe = api.onStatsUpdate(() => {
+            fetchStats();
+        });
+
+        return () => unsubscribe();
+    }, [stats]);
 
     if (!stats) return (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '1.5rem' }}>
