@@ -2,8 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const crypto = require('crypto');
-const db = require('./database');
-const { analyzeSession } = require('./analyzer');
+const path = require('path');
+const db = require('./src/database');
+const { analyzeSession } = require('./src/analyzer');
 
 const app = express();
 const http = require('http').createServer(app);
@@ -13,13 +14,13 @@ const io = require('socket.io')(http, {
         methods: ["GET", "POST"]
     }
 });
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(bodyParser.json());
-app.get('/', (req, res) => {
-    res.send('Digital Friction Analyzer API is running. Access frontend at http://localhost:5173');
-});
+
+// Serve static files from the React frontend app
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
 // --- AUTH HELPERS ---
 const hashPassword = (password) => {
@@ -737,6 +738,12 @@ app.get('/api/dashboard/live-feed', (req, res) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(rows);
     });
+});
+
+// The "catchall" handler: for any request that doesn't
+// match one of the API routes above, send back React's index.html file.
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/dist', 'index.html'));
 });
 
 http.listen(PORT, () => {

@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Layout from './components/Layout';
-import Home from './user/Home';
-import Services from './user/Services';
-import Details from './user/Details';
-import Login from './user/Login';
-import Signup from './user/Signup';
-import MultiStepForm from './user/MultiStepForm';
-import Confirmation from './user/Confirmation';
-import Pricing from './user/Pricing';
-import Features from './user/Features';
-import FeatureDetail from './user/FeatureDetail';
-import Dashboard from './dashboard/Dashboard';
-import AdminLogin from './user/AdminLogin';
-import AdminGuard from './components/AdminGuard';
-import ErrorBoundary from './ErrorBoundary';
-import AutoHelpWidget from './components/AutoHelpWidget';
-import { api } from './api';
+import Layout from './components/layout/Layout';
+import Home from './features/user/Home';
+import Services from './features/user/Services';
+import Details from './features/user/Details';
+import Login from './features/auth/Login';
+import Signup from './features/auth/Signup';
+import MultiStepForm from './features/user/MultiStepForm';
+import Confirmation from './features/user/Confirmation';
+import Pricing from './features/user/Pricing';
+import Features from './features/user/Features';
+import FeatureDetail from './features/user/FeatureDetail';
+import Dashboard from './features/dashboard/Dashboard';
+import AdminLogin from './features/auth/AdminLogin';
+import AdminGuard from './components/layout/AdminGuard';
+import ErrorBoundary from './components/common/ErrorBoundary';
+import AutoHelpWidget from './components/common/AutoHelpWidget';
+import { api } from './lib/api';
 
 function App() {
     const [sessionId, setSessionId] = useState(null);
@@ -54,7 +54,6 @@ function App() {
                 if (!ignore) {
                     // Fallback: generate a local UUID so the app still loads
                     setSessionId('local-' + crypto.randomUUID());
-                    setSessionError(true);
                 }
             }
         }

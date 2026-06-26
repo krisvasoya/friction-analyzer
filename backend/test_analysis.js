@@ -43,7 +43,7 @@ async function runScenario() {
         await delay(2000); 
 
         // 5. Verify Database
-        const db = require('./database');
+        const db = require('./src/database');
         db.get('SELECT * FROM sessions WHERE id = ?', [sessionId], (err, row) => {
             if (err) console.error(err);
             console.log('Session Result:', row);

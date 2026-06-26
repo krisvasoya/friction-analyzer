@@ -1,4 +1,4 @@
-const db = require('./database');
+const db = require('./src/database');
 
 db.get('SELECT COUNT(*) as total FROM sessions', (err, row) => {
     if (err) console.error('Total Query Error:', err);
