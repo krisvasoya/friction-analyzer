@@ -742,7 +742,8 @@ app.get('/api/dashboard/live-feed', (req, res) => {
 
 // The "catchall" handler: for any request that doesn't
 // match one of the API routes above, send back React's index.html file.
-app.get('*', (req, res) => {
+// Note: Express 5 requires '/{*path}' instead of '*'
+app.get('/{*path}', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/dist', 'index.html'));
 });
 
